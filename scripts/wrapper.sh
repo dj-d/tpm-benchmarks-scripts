@@ -1,5 +1,9 @@
 #! /bin/bash
 
+###############
+### GLOBALS ###
+###############
+
 ENCRYPTION=false
 DECRYPTION=false
 SIGNING=false
@@ -9,20 +13,9 @@ ENC_KEY="HS/SRK/ENC_KEY"
 SIGN_KEY="HS/SRK/SIGN_KEY"
 PUB_SIGN_KEY="/PUB_KEY"
 
-# Get SHA256 digest of file and save it to file the digest is truncated to 31 characters because of the TPM 2.0 limitation
-#
-# $1 - input file path
-# $2 - output file path (optional) - default: digest
-#
-# Returns output file path
-sha256() {
-    local INPUT_FILE_PATH="$1"
-    local OUTPUT_FILE_PATH="${2:-digest}"
-
-    cat "$INPUT_FILE_PATH" | sha256sum | cut -d ' ' -f1 | cut -c-31 > "$OUTPUT_FILE_PATH"
-
-    echo "$OUTPUT_FILE_PATH"
-}
+###############
+### TPM 2.0 ###
+###############
 
 # Import key to TPM
 #
@@ -39,6 +32,38 @@ import_key() {
     else
         echo "Already imported"
     fi
+}
+
+# Encrypt file
+#
+# $1 - input file path
+# $2 - output file path
+# $3 - key path in TPM (optional) - default: ENC_KEY
+encrypt() {
+    local INPUT_FILE_PATH="$1"
+    local OUTPUT_FILE_PATH="$2"
+    local KEY_PATH="${3:-$ENC_KEY}"
+    
+    tss2_encrypt \
+        -p "$KEY_PATH" \
+        -i "$INPUT_FILE_PATH" \
+        -o "$OUTPUT_FILE_PATH"
+}
+
+# Decrypt file
+#
+# $1 - input file path
+# $2 - output file path
+# $3 - key path in TPM (optional) - default: ENC_KEY
+decrypt() {
+    local INPUT_FILE_PATH="$1"
+    local OUTPUT_FILE_PATH="$2"
+    local KEY_PATH="${3:-$ENC_KEY}"
+    
+    tss2_decrypt \
+        -p "$KEY_PATH" \
+        -i "$INPUT_FILE_PATH" \
+        -o "$OUTPUT_FILE_PATH"
 }
 
 # Sign
@@ -85,36 +110,23 @@ verify_sign() {
     fi
 }
 
-# Encrypt file
-#
-# $1 - input file path
-# $2 - output file path
-# $3 - key path in TPM (optional) - default: ENC_KEY
-encrypt() {
-    local INPUT_FILE_PATH="$1"
-    local OUTPUT_FILE_PATH="$2"
-    local KEY_PATH="${3:-$ENC_KEY}"
-    
-    tss2_encrypt \
-        -p "$KEY_PATH" \
-        -i "$INPUT_FILE_PATH" \
-        -o "$OUTPUT_FILE_PATH"
-}
+###############
+### UTILITY ###
+###############
 
-# Decrypt file
+# Get SHA256 digest of file and save it to file the digest is truncated to 31 characters because of the TPM 2.0 limitation
 #
 # $1 - input file path
-# $2 - output file path
-# $3 - key path in TPM (optional) - default: ENC_KEY
-decrypt() {
+# $2 - output file path (optional) - default: digest
+#
+# Returns output file path
+sha256() {
     local INPUT_FILE_PATH="$1"
-    local OUTPUT_FILE_PATH="$2"
-    local KEY_PATH="${3:-$ENC_KEY}"
-    
-    tss2_decrypt \
-        -p "$KEY_PATH" \
-        -i "$INPUT_FILE_PATH" \
-        -o "$OUTPUT_FILE_PATH"
+    local OUTPUT_FILE_PATH="${2:-digest}"
+
+    cat "$INPUT_FILE_PATH" | sha256sum | cut -d ' ' -f1 | cut -c-31 > "$OUTPUT_FILE_PATH"
+
+    echo "$OUTPUT_FILE_PATH"
 }
 
 # Cleanup files
@@ -198,6 +210,10 @@ handle_options() {
     done
 }
 
+############
+### MAIN ###
+############
+
 # Main function
 main() {
     if [ "$ENCRYPTION" == true ]; then
@@ -235,6 +251,10 @@ main() {
         decrypt $INPUT_FILE_NAME $OUTPUT_FILE_NAME
     fi
 }
+
+############
+### INIT ###
+############
 
 handle_options "$@"
 
