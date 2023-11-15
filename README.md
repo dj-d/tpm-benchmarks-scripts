@@ -14,7 +14,6 @@ The repository is structured as follows:
 ├── README.md
 ├── scripts
 │   ├── globals.sh
-│   ├── setup-multiuser.sh
 │   ├── tpm.sh
 │   ├── utility.sh
 │   └── wrapper.sh
