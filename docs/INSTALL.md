@@ -1,4 +1,4 @@
-# Environment Setup
+# INSTALL
 
 ## Requirements
 
