@@ -356,6 +356,29 @@ and remove `0x81000001` from `srk_template`
 }
 ```
 
+after that update `scheme` of `rsa_decrypt_scheme`
+
+```json
+# before
+{
+  ...
+  "rsa_decrypt_scheme": {
+    "scheme": "TPM2_ALG_OAEP",
+    ...
+  }
+  ...
+}
+# after
+{
+  ...
+  "rsa_decrypt_scheme": {
+    "scheme": "TPM2_ALG_NULL",
+    ...
+  }
+  ...
+}
+```
+
 create a copy of `fapi-config.json` that works with RSA:
 
 ```bash
@@ -404,3 +427,4 @@ tss2_list
 [Uncompleted function "verify_signature"](https://github.com/tpm2-software/tpm2-pytss/issues/543)
 [ECC Encryption not yet supported](https://github.com/tpm2-software/tpm2-pytss/issues/544)
 [How to change encryption scheme from ECC to RSA?](https://github.com/tpm2-software/tpm2-tss/issues/2698)
+[ERROR: The data to be encrypted might be too large](https://github.com/tpm2-software/tpm2-tss/issues/2706)
