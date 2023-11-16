@@ -50,7 +50,7 @@ handle_options() {
             -i | --init)
                 CREATE_KEY=true
                 ;;
-            --encption-key)
+            --enc-key)
                 ENC_KEY="$2"
                 shift
                 ;;
