@@ -33,9 +33,14 @@ The benchmark results to be analyzed are multiple:
 
 - The time to **initialize the TPM keys** took less than 5 seconds.
 - The time to **encrypt** and **sign** a file took about 6 seconds.
+- The time to unroll the key rotation took:
+  - less than 32 seconds for 10 epochs
+  - about 45 seconds for 15 epochs
+  - less than 1 minute and 6 seconds for 20 epochs
+  - about 2 minutes and 41 seconds for 50 epochs
 - The time to **decrypt** and **verify** a file took about 3 seconds.
 
-To run the benchmarks, the following command can be used:
+To run the benchmarks on encryption and decryption, the following commands can be used:
 
 ```bash
 # create a file with random file
@@ -55,4 +60,10 @@ time $(\
     )
 ```
 
-**Total time** is less than 15 seconds *per user*.
+To run the benchmarks on key rotation, the following commands can be used:
+
+```bash
+./key_rotation.sh -s <start-iteration> -e <end-iteration> -p "<initial-key-plaintext>"
+```
+
+Thus, the **total time** for *key initialization*, *encryption*, and *signing* of an object and *decryption* and *signature verification* operations is less than **15 seconds**. To this must be added the time required for *key rotation unrolling*, which varies with the number of epochs.
