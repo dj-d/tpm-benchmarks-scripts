@@ -59,5 +59,5 @@ help() {
     echo "      $0 -d -v -k <tpm-key-path> -o <decripted-file-name> -p <encrypted-file-name>"
     echo ""
     echo "  Key path format: HS/SRK/<key-name> or HS/SRK/<key-name>/<key-name>"
-    exit 1
+    exit 0
 }

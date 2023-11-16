@@ -20,7 +20,6 @@ handle_options() {
         case $1 in
             -h | --help)
                 help
-                exit 0
                 ;;
             -d | --decrypt)
                 DECRYPTION=true
@@ -64,9 +63,8 @@ handle_options() {
                 shift
                 ;;
             *)
-                echo "Invalid option: $1" >&2
+                echo "Unknown option: $1" >&2
                 help
-                exit 1
                 ;;
         esac
         shift
@@ -75,6 +73,8 @@ handle_options() {
 
 # Main function
 main() {
+    handle_options "$@"
+
     if [ "$CREATE_KEY" == true ]; then
         echo "### CREATE KEY ###"
         create_key "$ENC_KEY" "decrypt"
@@ -117,6 +117,4 @@ main() {
     echo "### DONE ###"
 }
 
-handle_options "$@"
-
-main
+main "$@"
