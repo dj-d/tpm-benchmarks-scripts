@@ -14,6 +14,7 @@ The repository is structured as follows:
 ├── README.md
 ├── scripts
 │   ├── globals.sh
+│   ├── key_rotation.sh
 │   ├── tpm.sh
 │   ├── utility.sh
 │   └── wrapper.sh
