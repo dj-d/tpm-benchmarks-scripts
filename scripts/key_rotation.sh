@@ -1,12 +1,16 @@
 #! /bin/bash
 
+source ./globals.sh
+
+START=1
+
 # Roll up keys
 #
 # $1 - start iteration
 # $2 - end iteration
 roll_up() {
-    START=$1
-    END=$2
+    local END=$1
+    local START=${2:-1}
 
     # for i in {$START..$END}; do
     for (( i=$(($START - 1)); i < $END; i++ )); do
@@ -17,7 +21,9 @@ roll_up() {
             -e -s \
             -p ./enc_keys/key_$i \
             -o ./enc_keys/key_$(($i + 1)) \
-            --signature ./sign_keys/key_$(($i + 1))
+            --signature ./sign_keys/key_$(($i + 1)) \
+            --enc-key $ENC_KEY \
+            --sign-key $SIGN_KEY
     done
 }
 
@@ -26,8 +32,8 @@ roll_up() {
 # $1 - start iteration
 # $2 - end iteration
 unroll() {
-    START=$1
-    END=$2
+    local END=$1
+    local START=${2:-1}
 
     for (( i=$END; i>=$START; i-- )); do
         echo "Iteration: $i"
@@ -37,10 +43,21 @@ unroll() {
             -d -v \
             -p ./enc_keys/key_$i \
             -o ./dec_keys/key_$(($i - 1)) \
-            --signature ./sign_keys/key_$i
+            --signature ./sign_keys/key_$i \
+            --enc-key $ENC_KEY \
+            --sign-key $SIGN_KEY
         
         echo ""
     done
+}
+
+# Check if last decrypted file is equal to plaintext file
+check() {
+    if cmp --silent -- "./enc_keys/key_0" "./enc_keys/key_0"; then
+        echo "The last decrypted file is equal to plaintext file"
+    else
+        echo "The last decrypted file is NOT equal to initial file"
+    fi
 }
 
 # Cleanup test data
@@ -54,9 +71,11 @@ help() {
     echo ""
     echo "Options:"
     echo "  -h, --help              Show this help message and exit"
-    echo "  -p, --plaintext         Plaintext file"
-    echo "  -s, --start             Start iteration"
+    echo "  -p, --plaintext         Plaintext"
+    echo "  -s, --start             Start iteration (optional) - default: 1"
     echo "  -e, --end               End iteration"
+    echo "  --enc-key               Encryption key path in TPM (optional) - default: $ENC_KEY"
+    echo "  --sign-key              Signing key path in TPM (optional) - default: $SIGN_KEY"
     echo ""
     echo "Examples:"
     echo "  $0 -s <start-iteration> -e <end-iteration> -p <initial-key-plaintext>"
@@ -82,11 +101,19 @@ handle_options() {
                 shift
                 ;;
             -s | --start)
-                START="$2"
+                START=$2
                 shift
                 ;;
             -e | --end)
-                END="$2"
+                END=$2
+                shift
+                ;;
+            --enc-key)
+                ENC_KEY="$2"
+                shift
+                ;;
+            --sign-key)
+                SIGN_KEY="$2"
                 shift
                 ;;
             *)
@@ -131,15 +158,21 @@ main() {
 
     echo "### ROLL UP ###"
     echo ""
-    roll_up ${START} ${END}
+    roll_up $END $START
     
     echo ""
     
     echo "### UNROLL ###"
     echo ""
-    time unroll $START $END
+    time unroll $END $START
 
     echo ""
+
+    echo "### CHECK ###"
+    check
+
+    echo ""
+    
     echo "### CLEANUP ###"
     cleanup
 }
